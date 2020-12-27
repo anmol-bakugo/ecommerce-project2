@@ -5,7 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ecommercepractice2/pages/HomePage.dart';
-
+import 'package:flutter/foundation.dart';
 
 
 class Login extends StatefulWidget {
@@ -119,6 +119,8 @@ class _LoginState extends State<Login> {
     preferences = await SharedPreferences.getInstance();
     isLoggedin = await googleSignIn.isSignedIn();
 
+    debugPrint( 'this is$isLoggedin');
+
     if(isLoggedin){
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()) );
     }
@@ -144,18 +146,27 @@ class _LoginState extends State<Login> {
         FirebaseFirestore.instance.collection("users").doc(firebaseUser.uid).set({
               "id":firebaseUser.uid,
               "username":firebaseUser.displayName,
-              "profilePicture":firebaseUser.photoURL
+              "photoUrl":firebaseUser.photoURL
 
 
         });
+        debugPrint('hi');
         await preferences.setString("id", firebaseUser.uid);
         await preferences.setString("username", firebaseUser.displayName);
-        await preferences.setString("photoUrl", firebaseUser.displayName);
+        await preferences.setString("photoUrl", firebaseUser.photoURL);
+        Fluttertoast.showToast(msg: "Login was Succefully");
+        setState(() {
+          loading = false;
+        });
+        Navigator.pushReplacement(
+
+            context, MaterialPageRoute(builder: (context) => HomePage()));
+
       }else{
         await preferences.setString("id", documents[0]['id']);
         await preferences.setString("username", documents[0]['username']);
         await preferences.setString("photoUrl", documents[0]['photoUrl']);
-        Fluttertoast.showToast(msg: "Login was Succefull");
+        Fluttertoast.showToast(msg: "Login was Succefulli");
         setState(() {
           loading = false;
         });
