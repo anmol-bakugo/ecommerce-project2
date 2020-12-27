@@ -118,6 +118,7 @@ class _LoginState extends State<Login> {
     });
     preferences = await SharedPreferences.getInstance();
     isLoggedin = await googleSignIn.isSignedIn();
+
     if(isLoggedin){
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>HomePage()) );
     }
@@ -134,19 +135,18 @@ class _LoginState extends State<Login> {
     GoogleSignInAccount googleUser = await googleSignIn.signIn();
     GoogleSignInAuthentication googleSignInAuthentication = await googleUser.authentication;
 
-    AuthCredential credential = GoogleAuthProvider.getCredential(idToken: googleSignInAuthentication.idToken, accessToken: googleSignInAuthentication.accessToken);
-
-    FirebaseUser firebaseUser = (await firebaseAuth.signInWithCredential(credential)).user;
+    AuthCredential credential = GoogleAuthProvider.credential(idToken: googleSignInAuthentication.idToken, accessToken: googleSignInAuthentication.accessToken);
+    User firebaseUser = (await firebaseAuth.signInWithCredential(credential)).user;
     if(firebaseUser!=null) {
-      final QuerySnapshot result = await Firestore.instance.collection("users").where("id",isEqualTo: firebaseUser.uid).getDocuments();
-      final List <DocumentSnapshot> documents = result.documents;
+      final QuerySnapshot result = await FirebaseFirestore.instance.collection("users").where("id",isEqualTo: firebaseUser.uid).get();
+      final List <DocumentSnapshot> documents = result.docs;
       if(documents.length==0){
-        //insert the user to our collection
+        FirebaseFirestore.instance.collection("users").doc(firebaseUser.uid).set({
+              "id":firebaseUser.uid,
+              "username":firebaseUser.displayName,
+              "profilePicture":firebaseUser.photoURL
 
-        Firestore.instance.collection("users").document(firebaseUser.uid).setData({
-          "id" : firebaseUser.uid,
-          "username":firebaseUser.displayName,
-          "profilePicture":firebaseUser.photoURL
+
         });
         await preferences.setString("id", firebaseUser.uid);
         await preferences.setString("username", firebaseUser.displayName);
